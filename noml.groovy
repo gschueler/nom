@@ -121,10 +121,10 @@ public class DoNoml{
             //current indent
             def rindent=(nindent-last.indent)
             
-            def m=(line=~/^(\w[\w:_\.-]*?)([:]?\s+(.*))?$/)
+            def m=(line=~/^(\w[\w:_\.-]*?)[:]?(\s+(.*))?$/)
             def mt=(line=~/^:(.*)?$/)
             def mc=(line=~/^#(.*)?$/)
-            def ma=(line=~/^@(\w[\w:_\.-]*?)([:]?\s+(.*))$/)
+            def ma=(line=~/^@?(\w[\w:_\.-]*)([=]?\s*(.*))$/)
             def elem=[subs:[],indent:nindent,text:[],attrs:[:],comments:[]]
             if(m.matches()){
                 elem.tag=m.group(1)
@@ -139,9 +139,6 @@ public class DoNoml{
                     }
                     elem.attrtext=tval
                 }
-            }else if(mt.matches()){
-                last.text<<mt.group(1)
-                return
             }else if(mc.matches()){
                 //comment
                 if(mc.group(1).startsWith('#')){
@@ -153,6 +150,9 @@ public class DoNoml{
                 if(ma.groupCount()>2){
                     last.attrs[ma.group(1)]=ma.group(3)
                 }
+                return
+            }else if(mt.matches()){
+                last.text<<mt.group(1)
                 return
             }else if(line.trim()){
                 last.text<<line
@@ -235,7 +235,7 @@ public class DoNoml{
             }
             
             if(!att){
-                elem.text.addAll(elem.attrtext)
+                elem.text=[elem.attrtext]+elem.text
             }
         }
         def text =''
