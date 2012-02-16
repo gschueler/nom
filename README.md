@@ -1,10 +1,10 @@
-# noml
+# nom
 
-noml is "no XML" or XML without the cursing.
+nom is "no markup" or XML without the cursing.
 
 (aka Markdown for XML)
 
-If you *must* produce XML, noml is meant to be the easiest way to write it by hand.
+If you *must* produce XML, nom is meant to be the easiest way to write it by hand.
 
 Beta to see how useful it is.
 
@@ -63,7 +63,7 @@ yields:
 
 # why
 
-Not sure I need to justify this. Try writing XML by hand.  Try writing noml.
+Not sure I need to justify this. Try writing XML by hand.  Try writing nom.
 
 # why not yaml
 
@@ -118,14 +118,14 @@ Text content is added to the previous element, no matter the indentation.
 
 # Examples
 
-noml:
+nom:
 
     script:
     
         @author Greg Schueler
         @date 2/15/2012
         
-        title: noml: the story of noml
+        title: nom: the story of nom
         
         subtitle: just trying to clean up the world, one bit at a time
         
@@ -166,7 +166,7 @@ noml:
 xml:
 
     <script author='Greg Schueler' date='2/15/2012'>
-      <title>noml: the story of noml</title>
+      <title>nom: the story of nom</title>
       <subtitle>just trying to clean up the world, one bit at a time</subtitle>
       <scene number='1' act='1'>
         <setting type='interior' lighting='dark' air='hazy'></setting>
@@ -195,14 +195,14 @@ xml:
 
 # Usage
 
-    groovy noml.groovy [-rev] < file > out
+    groovy nom.groovy [-rev] < file > out
 
-Normal usage takes noml input and produces XML.
+Normal usage takes nom input and produces XML.
 
-Specifying `-rev` will convert XML to noml.
+Specifying `-rev` will convert XML to nom.
 
 # TODO
 
-* add a reverser to get noml from XML (done)
+* add a reverser to get nom from XML (done)
 * config options
 * ...profit?

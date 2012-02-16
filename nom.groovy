@@ -1,14 +1,13 @@
 #!/usr/bin/env groovy
-//@Grab(group='dom4j', module='dom4j', version='1.6.1')
-//import 
+
 import groovy.xml.*
 
 
-public class DoNoml{
+public class DoNom{
     def List mylist=[]  
     def indent=0
     def istr='    '
-    public noml(){
+    public nom(){
     
     }
     public void processArgs(args){
@@ -19,9 +18,9 @@ public class DoNoml{
     }
     public processRevInput(input){
         def doc=new XmlParser().parse(input)
-        System.out.println(renderNoml(doc,0,[:]))
+        System.out.println(renderNom(doc,0,[:]))
     }
-    public renderNoml(node,indent,nspace,sb=null){
+    public renderNom(node,indent,nspace,sb=null){
         def pref=istr*indent
         if(!sb){
             sb = new StringBuilder()
@@ -98,7 +97,7 @@ public class DoNoml{
         //sub elements
         node.children().each{nnode->
             if(nnode instanceof Node){
-                renderNoml(nnode,indent+1,nspace,sb)
+                renderNom(nnode,indent+1,nspace,sb)
             }
         }
         sb.toString()
@@ -256,9 +255,9 @@ public class DoNoml{
 
 }
 
-mynoml=new DoNoml()
+mynom=new DoNom()
 if(args.length>0 && args[0]=='-rev'){
-    mynoml.processRev()
+    mynom.processRev()
 }else{
-    mynoml.process()
+    mynom.process()
 }
