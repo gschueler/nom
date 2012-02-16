@@ -1,8 +1,7 @@
 #!/usr/bin/env groovy
 //@Grab(group='dom4j', module='dom4j', version='1.6.1')
 //import 
-import groovy.xml.MarkupBuilder
-import org.custommonkey.xmlunit.*
+import groovy.xml.*
 
 
 public class DoNoml{
@@ -15,13 +14,96 @@ public class DoNoml{
     public void processArgs(args){
     
     }
+    public void processRev(){
+        processRevInput(System.in)
+    }
+    public processRevInput(input){
+        def doc=new XmlParser().parse(input)
+        System.out.println(renderNoml(doc,0,[:]))
+    }
+    public renderNoml(node,indent,nspace,sb=null){
+        def pref=istr*indent
+        if(!sb){
+            sb = new StringBuilder()
+        }
+        sb<<pref
+        def name=node.name()
+        if(name instanceof QName){
+            sb<<"${name.prefix}:${name.localPart}"
+            if(!nspace[name.prefix]){
+                nspace[name.prefix]=name.namespaceURI
+                node.attributes().put('xmlns:'+name.prefix,name.namespaceURI)
+            }
+        }else{
+            sb<<name
+        }
+        def nlines=[]
+        if(node.attributes()){
+            def xattrs=[:]
+            node.attributes().each{k,v->
+                if(v=~/ /){
+                    xattrs[k]=v
+                }else{
+                    if(k instanceof QName){
+                        sb<<" ${k.prefix}:${k.localPart}=${v}"
+                        if(!nspace[k.prefix]){
+                            nspace[k.prefix]=k.namespaceURI
+                            sb<<" xmlns:${k.prefix}=${k.namespaceURI}"
+                        }
+                    }else{
+                        sb<<" ${k}=${v}"
+                    }
+                }
+            }
+            xattrs.each{k,v->
+                if(k instanceof QName){
+                    nlines<<"@${k.prefix}:${k.localPart} ${v}"
+                    if(!nspace[k.prefix]){
+                        nspace[k.prefix]=k.namespaceURI
+                        nlines<<"@xmlns:${k.prefix} ${k.namespaceURI}"
+                    }
+                }else{
+                    nlines<<"${istr}@${k} ${v}"
+                }
+            }
+            if(node.text()){
+                node.text().eachLine{it->
+                    nlines<<"${istr}:${it}"
+                }
+            }
+        }else if(node.text()){
+            def nline
+            node.text().eachLine{it->
+                if(!nline){
+                    nline=it
+                }else{
+                    nlines<<"${istr}:${it}"
+                }
+            }
+            sb<<" ${nline}"
+        }
+        sb<<"\n"
+        nlines.each{
+            sb<<pref
+            sb<<it
+            sb<<"\n"
+        }
+        
+        //sub elements
+        node.children().each{nnode->
+            if(nnode instanceof Node){
+                renderNoml(nnode,indent+1,nspace,sb)
+            }
+        }
+        sb.toString()
+    }
     public void process(){
-        parseInput(System.in)
+        processInput(System.in)
     }
     
-    public parseInput(input){
+    public processInput(input){
         def ctx=[]
-        def rparent=[subs:[],indent:-1,text:[],attrs:[:]]
+        def rparent=[subs:[],indent:-1,text:[],attrs:[:],comments:[]]
         def parent=rparent
         def last=parent
         input.eachLine{ line->
@@ -33,21 +115,32 @@ public class DoNoml{
             //current indent
             def rindent=(nindent-last.indent)
             
-            def m=(line=~/^(\w[\w:_\.-]+?)([:]?\s+(.*))?$/)
+            def m=(line=~/^(\w[\w:_\.-]*?)([:]?\s+(.*))?$/)
             def mt=(line=~/^:(.*)?$/)
             def mc=(line=~/^#(.*)?$/)
-            def ma=(line=~/^@(\w[\w:_\.-]+?)([:]?\s+(.*))$/)
-            def elem=[subs:[],indent:nindent,text:[],attrs:[:]]
+            def ma=(line=~/^@(\w[\w:_\.-]*?)([:]?\s+(.*))$/)
+            def elem=[subs:[],indent:nindent,text:[],attrs:[:],comments:[]]
             if(m.matches()){
                 elem.tag=m.group(1)
                 if(m.groupCount()>2 && m.group(3)){
-                    elem.attrtext=m.group(3)
+                    def tval=m.group(3)
+                    if(tval.indexOf('#')>=0){
+                        def tc=tval.substring(tval.indexOf('#'))
+                        tval=tval.replaceAll(/#.*$/,'')
+                        if(tc.startsWith('##')){
+                            elem.comments<<tc.substring(2)
+                        }
+                    }
+                    elem.attrtext=tval
                 }
             }else if(mt.matches()){
                 last.text<<mt.group(1)
                 return
             }else if(mc.matches()){
                 //comment
+                if(mc.group(1).startsWith('#')){
+                    last.comments<<mc.group(1).substring(1)
+                }
                 return
             }else if(ma.matches()){
                 //attribute
@@ -92,8 +185,7 @@ public class DoNoml{
         if(rparent.subs.size()==1){
             rparent=rparent.subs[0]
         }else{
-            System.out.println("tags: ${rparent.subs*.tag.join(',')}")
-            rparent.tag="top"
+            rparent.tag="root"
         }
         System.out.println(renderOutput(rparent))
     }
@@ -127,6 +219,9 @@ public class DoNoml{
             text=elem.text.join("\n")
         }
         xml."${elem.tag}"(att+elem.attrs,text){
+            if(elem.comments){
+                mkp.comment(elem.comments.join("\n"))
+            }
             if(elem.subs){
                 elem.subs.each{sub->
                     renderXml(delegate,sub)
@@ -138,8 +233,8 @@ public class DoNoml{
 }
 
 mynoml=new DoNoml()
-if(args.length>0){
-    mynoml.processArgs(args)
+if(args.length>0 && args[0]=='-rev'){
+    mynoml.processRev()
 }else{
     mynoml.process()
 }
