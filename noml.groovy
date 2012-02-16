@@ -29,10 +29,12 @@ public class DoNoml{
         sb<<pref
         def name=node.name()
         if(name instanceof QName){
-            sb<<"${name.prefix}:${name.localPart}"
+            def qp=name.prefix?name.prefix+':':''
+            sb<<"${qp}${name.localPart}"
             if(!nspace[name.prefix]){
                 nspace[name.prefix]=name.namespaceURI
-                node.attributes().put('xmlns:'+name.prefix,name.namespaceURI)
+                def op=name.prefix?':'+name.prefix:''
+                node.attributes().put("xmlns${op}",name.namespaceURI)
             }
         }else{
             sb<<name
@@ -45,10 +47,12 @@ public class DoNoml{
                     xattrs[k]=v
                 }else{
                     if(k instanceof QName){
-                        sb<<" ${k.prefix}:${k.localPart}=${v}"
+                        def qp=k.prefix?k.prefix+':':''
+                        sb<<" ${qp}${k.localPart}=${v}"
                         if(!nspace[k.prefix]){
                             nspace[k.prefix]=k.namespaceURI
-                            sb<<" xmlns:${k.prefix}=${k.namespaceURI}"
+                            def op=k.prefix?':'+k.prefix:''
+                            sb<<" xmlns${op}=${k.namespaceURI}"
                         }
                     }else{
                         sb<<" ${k}=${v}"
@@ -57,10 +61,12 @@ public class DoNoml{
             }
             xattrs.each{k,v->
                 if(k instanceof QName){
-                    nlines<<"@${k.prefix}:${k.localPart} ${v}"
+                    def qp=k.prefix?k.prefix+':':''
+                    nlines<<"@${qp}${k.localPart} ${v}"
                     if(!nspace[k.prefix]){
                         nspace[k.prefix]=k.namespaceURI
-                        nlines<<"@xmlns:${k.prefix} ${k.namespaceURI}"
+                        def op=k.prefix?':'+k.prefix:''
+                        nlines<<"@xmlns${op} ${k.namespaceURI}"
                     }
                 }else{
                     nlines<<"${istr}@${k} ${v}"
