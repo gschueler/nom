@@ -205,15 +205,33 @@ public class DoNoml{
     public renderXml(xml,elem){
         def att=[:]
         if(elem.attrtext){
+            def lastatt
+            def expectq
             elem.attrtext.split(/ /).each{a->
                 def b=a.split(/=/,2)
-                if(b.length>1 && b[0] && b[1]){
+                if(!expectq && b.length>1 && b[0] && b[1]){
                     def val=b[1]
                     if(val.size()>1 && val[0]==val[-1] && (val[0]=='"' || val[0]=="'")){
                         val=val[1..-2].toString()
+                    }else if(val[0]=='"' || val[0]=="'"){
+                        expectq=val[0]
+                        val=val[1..-1]
                     }
                     att[b[0]]=val
+                    lastatt=b[0]
+                }else if(a && lastatt){
+                    att[lastatt]+=' '
+                    if(expectq && a[-1]==expectq){
+                        att[lastatt]+=a[0..-2]
+                        expectq=null
+                    }else{
+                        att[lastatt]+=a
+                    }
                 }
+            }
+            if(expectq && lastatt){
+                //intended lone quote char? unlikely
+                //att[lastatt]=expectq+att[lastatt]
             }
             
             if(!att){
