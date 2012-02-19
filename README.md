@@ -196,6 +196,7 @@ xml:
 # Usage
 
     groovy nom.groovy [-rev] < file > out
+    ruby nom.rb < file > out
 
 Normal usage takes nom input and produces XML.
 
@@ -203,6 +204,8 @@ Specifying `-rev` will convert XML to nom.
 
 # TODO
 
-* add a reverser to get nom from XML (done)
+* add a reverser to get nom from XML
+    * add to groovy impl (done)
+    * add to ruby impl
 * config options
 * ...profit?
