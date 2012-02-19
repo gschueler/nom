@@ -167,7 +167,9 @@ class XML
         REXML::Document.new(io)
     end
     def to_nom(io)
-        render_nom(@doc.root,0,{},io)
+        ns = {}
+        @doc.root.namespaces.each {|k,v| ns[v]=k }
+        render_nom(@doc.root,0,ns,io)
     end
     def valid?
         nil!=@doc
@@ -176,14 +178,16 @@ class XML
         pref=Nom.istr * indent
         io<<pref
         name=elem.name
-        #todo: namespaces
+        if elem.namespace != "" && ns[elem.namespace] != "xmlns"
+            io<<ns[elem.namespace]
+            io<<":"
+        end
         io<<name
         nlines=[]
         elem.attributes.each do |k,v|
-            if v.scan(/ /)
+            if v.include?(" ")
                 nlines<< "#{Nom.istr}@#{k} #{v}"
             else
-                #todo namespace
                 io<<" #{k}=#{v}"
             end
         end
@@ -192,8 +196,6 @@ class XML
             elem.text.each_line do |line|
                 line.chomp!
                 line.strip!
-                #puts "line: '#{line}'"
-                #line.trim!
                 if line!=""
                     if !nline && !line.include?("=")
                         nline=line.chomp
