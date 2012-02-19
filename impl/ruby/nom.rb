@@ -4,6 +4,9 @@ require 'rexml/document'
 module Nom
 class Nom
     @@istr = "    "
+    def Nom.istr
+        @@istr
+    end
     @rparent
     def initialize(io)
         @rparent={:subs => [], :indent => -1,:text => [],:attrs => {},:comments => []}
@@ -155,7 +158,71 @@ class Nom
         doc
     end
 end
+class XML
+    @doc
+    def initialize(io)
+        @doc=parse_xml(io)
+    end
+    def parse_xml(io)
+        REXML::Document.new(io)
+    end
+    def to_nom(io)
+        render_nom(@doc.root,0,{},io)
+    end
+    def valid?
+        nil!=@doc
+    end
+    def render_nom(elem,indent,ns,io)
+        pref=Nom.istr * indent
+        io<<pref
+        name=elem.name
+        #todo: namespaces
+        io<<name
+        nlines=[]
+        elem.attributes.each do |k,v|
+            if v.scan(/ /)
+                nlines<< "#{Nom.istr}@#{k} #{v}"
+            else
+                #todo namespace
+                io<<" #{k}=#{v}"
+            end
+        end
+        nline=nil
+        if elem.text
+            elem.text.each_line do |line|
+                line.chomp!
+                line.strip!
+                #puts "line: '#{line}'"
+                #line.trim!
+                if line!=""
+                    if !nline && !line.include?("=")
+                        nline=line.chomp
+                    else
+                        nlines<<"#{Nom.istr}:#{line.chomp}"
+                    end
+                end
+            end
+            if nline
+                io<<" #{nline}"
+            end
+        end
+        io<<"\n"
+        nlines.each do |line|
+            io<<pref
+            io<<line
+            io<<"\n"
+        end
+        elem.elements.each do |el|
+            render_nom(el,indent+1,ns,io)
+        end
+    end
+end
 end
 
-nom = Nom::Nom.new(STDIN)
-nom.to_xml(STDOUT)
+if ARGV.size > 0 && ARGV[0]=="-rev"
+    nomxml = Nom::XML.new(STDIN)
+    nomxml.to_nom(STDOUT)
+else
+    nom = Nom::Nom.new(STDIN)
+    nom.to_xml(STDOUT)
+end
