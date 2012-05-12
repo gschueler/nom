@@ -1,19 +1,28 @@
 require 'strscan'
 require 'rexml/document'
 
+# @author Greg Schueler
 module Nom
+
+# Handles converting Nom input to XML
 class Nom
     @@istr = "    "
     def Nom.istr
         @@istr
     end
     @rparent
+
+    # Create a new object
+    # @param [IO] input IO stream
     def initialize(io)
         @rparent={:subs => [], :indent => -1,:text => [],:attrs => {},:comments => []}
         
         #todo guess at contents xml or nom
         parse_nom(io)
     end
+
+    # Parse the input text
+    # @param [IO] input IO stream
     def parse_nom(io)
         ctx=[]
         indent=0
@@ -131,11 +140,17 @@ class Nom
         end
     end
     
+    # Write the XML to a stream
+    # @param [IO] Output IO stream
     def to_xml(io)
         doc = REXML::Document.new        
         render_xml(@rparent,doc).write(io,2)
         io.puts
     end
+
+    # Convert the parsed Nom data to XML
+    # @param [Hash] Nom data structure
+    # @param [REXML::Document] Document to add XML data to
     def render_xml(obj,doc)
         elem=REXML::Element.new(obj[:tag])
         if obj[:text].size > 0 
@@ -158,22 +173,42 @@ class Nom
         doc
     end
 end
+
+# Handles converting XML input to Nom
 class XML
     @doc
+
+    # Create a new object from XML input
+    # @param [IO] Input XML IO stream
     def initialize(io)
         @doc=parse_xml(io)
     end
+
+    # Parse the XML input
+    # @param [IO] Input XML IO stream
     def parse_xml(io)
         REXML::Document.new(io)
     end
+
+    # Write Nom text to an IO stream
+    # @param [IO] Output IO stream
     def to_nom(io)
         ns = {}
         @doc.root.namespaces.each {|k,v| ns[v]=k }
         render_nom(@doc.root,0,ns,io)
     end
+
+    # Return whether the XML input was valid
+    # @return [Boolean] true if XML was parseable
     def valid?
         nil!=@doc
     end
+
+    # Write Nom to IO stream
+    # @param [REXML::Element] Element to render
+    # @param [int] Indent level
+    # @param [{String => String}] Namespace definitions
+    # @param [IO] Output IO stream
     def render_nom(elem,indent,ns,io)
         pref=Nom.istr * indent
         io<<pref
