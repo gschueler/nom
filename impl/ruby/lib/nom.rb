@@ -221,10 +221,3 @@ class XML
 end
 end
 
-if ARGV.size > 0 && ARGV[0]=="-rev"
-    nomxml = Nom::XML.new(STDIN)
-    nomxml.to_nom(STDOUT)
-else
-    nom = Nom::Nom.new(STDIN)
-    nom.to_xml(STDOUT)
-end
