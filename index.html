@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Nom by gschueler</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Nom</h1>
+          <h2>nom is no markup xml</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/gschueler/nom/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/gschueler/nom/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/gschueler/nom" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>nom</h1>
+
+<p>nom is "no markup" or XML without the cursing.</p>
+
+<p>(aka Markdown for XML)</p>
+
+<p>If you <em>must</em> produce XML, nom is meant to be the easiest way to write it by hand.</p>
+
+<p>Beta to see how useful it is.</p>
+
+<h1>what</h1>
+
+<p>Write XML documents in a simpler form and then convert them to XML.</p>
+
+<p>Structure is created by indentation, not angle brackets. Increases clarity, reduces noise.</p>
+
+<p>input: </p>
+
+<pre><code>a
+    b
+        c
+</code></pre>
+
+<p>output:</p>
+
+<pre><code>&lt;a&gt;
+  &lt;b&gt;
+    &lt;c&gt;&lt;/c&gt;
+  &lt;/b&gt;
+&lt;/a&gt;
+</code></pre>
+
+<p>Attributes can be specified on the same line as the element name, or on their own line, and can be prefixed with '@':</p>
+
+<pre><code>a this=that
+    @that something else
+    those=another thing
+</code></pre>
+
+<p>yields:</p>
+
+<pre><code>&lt;a this='that' that='something else' those='another thing'&gt;&lt;/a&gt;
+</code></pre>
+
+<p>Text content can be on the same line, as long as it doesn't contain <code>attribute=value</code></p>
+
+<pre><code>a This is all it &lt;looks like&gt;
+</code></pre>
+
+<p>yields:</p>
+
+<pre><code>&lt;a&gt;This is all it &amp;lt;looks like&amp;gt;&lt;/a&gt;
+</code></pre>
+
+<p>Text can be on separate lines, just use a colon at the start, and indentation doesn't matter:</p>
+
+<pre><code>a
+    b
+:text inside b
+    :more text inside b
+</code></pre>
+
+<p>yields:</p>
+
+<pre><code>&lt;a&gt;
+  &lt;b&gt;text inside b
+more text inside b&lt;/b&gt;
+&lt;/a&gt;
+</code></pre>
+
+<h1>why</h1>
+
+<p>Not sure I need to justify this. Try writing XML by hand.  Try writing nom.</p>
+
+<h1>why not yaml</h1>
+
+<p>Yaml and XML don't quite map to each other (see <a href="http://yaml.org/xml.html">yaxml</a>).  XML has attributes as well as subelements, and can have multiple elements of the same name in the same context. We also want a simple way of expressing textual content, as well as comments.  Yaml is great for expressing structured data, but not great for mapping to XML, nor particularly for writing by hand.</p>
+
+<h1>syntax detail</h1>
+
+<p>Empty lines are ignored.</p>
+
+<h2>elements</h2>
+
+<pre><code>element(:)? [attr=value]+ | &lt;text&gt;
+</code></pre>
+
+<p>Each element is indented by some multiple of 4 space characters, X. If X is greater than the previous line's indentation, this line is a sub element of the previous element.  If X is less than the previous line's indentation, this element is a sub element of next higher element that has a lower indentation.</p>
+
+<p>If the remaining text on the line contains any text like "attribute=value", then these are treated as attributes, and values can be quoted or not, and may contain spaces.</p>
+
+<p>Otherwise the remaining text is treated as text content of the element.</p>
+
+<p>A comment may be added on the same line as an element.</p>
+
+<p>If there is a single top-level element, it is used as the document root element.</p>
+
+<p>If there are multiple top-level elements, they are made subordinate to a default root element.  Currently the default root element is named "root", but this should be an input option.</p>
+
+<h2>Attributes</h2>
+
+<pre><code>@attribute &lt;value&gt;
+@attribute=&lt;value&gt;
+attribute=&lt;value&gt;
+</code></pre>
+
+<p>Attributes are added to the previous element, no matter the indentation. If you use the <code>@</code> sign you do not need an equals sign at the end of the attribute name.</p>
+
+<h2>Comment</h2>
+
+<pre><code>#&lt;text&gt;
+</code></pre>
+
+<p>Comments can be at any indentation.</p>
+
+<p>If you use two hash charaters, the comment is included as an XML comment in the output:</p>
+
+<pre><code>##&lt;xml comment&gt;
+</code></pre>
+
+<h2>Text content</h2>
+
+<p>Either use the <code>element &lt;text&gt;</code> format, or specify text on its own line:</p>
+
+<pre><code>:&lt;text&gt;
+</code></pre>
+
+<p>Text content is added to the previous element, no matter the indentation.</p>
+
+<h1>Examples</h1>
+
+<p>nom:</p>
+
+<pre><code>script:
+
+    @author Greg Schueler
+    @date 2/15/2012
+
+    title: nom: the story of nom
+
+    subtitle: just trying to clean up the world, one bit at a time
+
+    scene:  number=1 act=1
+
+        setting: type=interior lighting=dark air=hazy
+
+        dialog
+            voiceover
+                :Somewhere, on the internet...
+
+            speaker name=Greg
+                :What is wrong with the world? Why it so fugly?
+
+            speaker name=Anthony
+                :I don't know, Greg. What is your problem?
+
+            speaker name=Greg
+                :I'd like to mock up an XML document in a reasonable way.
+                :But I'd really love not to use the full syntax.
+
+        cut-to
+            image A lightbulb lighting up.
+
+        montage style=1980s
+            : A man hacks at a keyboard into the wee hours of the night.
+
+        cut-to
+            close-up A neon green font on a black terminal screen.
+                : The text says "git push origin master"
+
+        cut-to
+            close-up A keyboard.
+                : A finger pushes the enter key.
+
+        titles: Teh end...
+</code></pre>
+
+<p>xml:</p>
+
+<pre><code>&lt;script author='Greg Schueler' date='2/15/2012'&gt;
+  &lt;title&gt;nom: the story of nom&lt;/title&gt;
+  &lt;subtitle&gt;just trying to clean up the world, one bit at a time&lt;/subtitle&gt;
+  &lt;scene number='1' act='1'&gt;
+    &lt;setting type='interior' lighting='dark' air='hazy'&gt;&lt;/setting&gt;
+    &lt;dialog&gt;
+      &lt;voiceover&gt;Somewhere, on the internet...&lt;/voiceover&gt;
+      &lt;speaker name='Greg'&gt;What is wrong with the world? Why it so fugly?&lt;/speaker&gt;
+      &lt;speaker name='Anthony'&gt;I don't know, Greg. What is your problem?&lt;/speaker&gt;
+      &lt;speaker name='Greg'&gt;I'd like to mock up an XML document in a reasonable way.
+But I'd really love not to use the full syntax.&lt;/speaker&gt;
+    &lt;/dialog&gt;
+    &lt;cut-to&gt;
+      &lt;image&gt;A lightbulb lighting up.&lt;/image&gt;
+    &lt;/cut-to&gt;
+    &lt;montage style='1980s'&gt; A man hacks at a keyboard into the wee hours of the night.&lt;/montage&gt;
+    &lt;cut-to&gt;
+      &lt;close-up&gt;A neon green font on a black terminal screen.
+ The text says "git push origin master"&lt;/close-up&gt;
+    &lt;/cut-to&gt;
+    &lt;cut-to&gt;
+      &lt;close-up&gt;A keyboard.
+ A finger pushes the enter key.&lt;/close-up&gt;
+    &lt;/cut-to&gt;
+    &lt;titles&gt;Teh end...&lt;/titles&gt;
+  &lt;/scene&gt;
+&lt;/script&gt;
+</code></pre>
+
+<h1>Usage</h1>
+
+<pre><code>groovy nom.groovy [-rev] &lt; file &gt; out
+ruby nom.rb &lt; file &gt; out
+</code></pre>
+
+<p>Normal usage takes nom input and produces XML.</p>
+
+<p>Specifying <code>-rev</code> will convert XML to nom.</p>
+
+<h1>TODO</h1>
+
+<ul>
+<li>add a reverser to get nom from XML
+
+<ul>
+<li>add to groovy impl (done)</li>
+<li>add to ruby impl</li>
+</ul>
+</li>
+<li>config options</li>
+<li>...profit?</li>
+</ul>
+        </section>
+
+        <footer>
+          Nom is maintained by <a href="https://github.com/gschueler">gschueler</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
