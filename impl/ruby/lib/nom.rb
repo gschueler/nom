@@ -195,6 +195,7 @@ class XML
     def to_nom(io)
         ns = {}
         @doc.root.namespaces.each {|k,v| ns[v]=k }
+        io<<"# nom\n"
         render_nom(@doc.root,0,ns,io)
     end
 
