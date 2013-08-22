@@ -50,7 +50,7 @@ class Nom
                     expectq=nil
                     lastatt=nil
                     rest.split(/ /).each do |tok|
-                        a,val = tok.split(/=/,2)
+                        a,val = tok.split('=',2)
                         if !expectq && a && val
                             if val.size>1 && val[0]==val[-1] && (val[0]=='"'[0] || val[0]=="'"[0])
                                 val=val[1..-2]
