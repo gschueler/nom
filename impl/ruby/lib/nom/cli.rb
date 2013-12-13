@@ -4,7 +4,7 @@ module Nom
         def self.start
             if ARGV.size > 0 && ARGV[0]=="-rev"
                 nomxml = XML.new(STDIN)
-                nomxml.to_nom(STDOUT)
+                nomxml.to_nom(STDOUT,true)
             else
                 nom = Nom.new(STDIN)
                 nom.to_xml(STDOUT)

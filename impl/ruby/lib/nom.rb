@@ -1,5 +1,6 @@
 require 'strscan'
 require 'rexml/document'
+require 'colorize'
 
 # @author Greg Schueler
 module Nom
@@ -192,11 +193,11 @@ class XML
 
     # Write Nom text to an IO stream
     # @param [IO] Output IO stream
-    def to_nom(io)
+    def to_nom(io,color=false)
         ns = {}
         @doc.root.namespaces.each {|k,v| ns[v]=k }
         io<<"# nom\n"
-        render_nom(@doc.root,0,ns,io)
+        render_nom(@doc.root,0,ns,io,color)
     end
 
     # Return whether the XML input was valid
@@ -204,27 +205,36 @@ class XML
     def valid?
         nil!=@doc
     end
+    def color(str,color,docolor=false)
+        if docolor
+            str.colorize(color)
+        else
+            str
+        end
+    end
 
     # Write Nom to IO stream
     # @param [REXML::Element] Element to render
     # @param [int] Indent level
     # @param [{String => String}] Namespace definitions
     # @param [IO] Output IO stream
-    def render_nom(elem,indent,ns,io)
+    def render_nom(elem,indent,ns,io,color=false)
         pref=Nom.istr * indent
         io<<pref
         name=elem.name
+        nameout=name
         if elem.namespace != "" && ns[elem.namespace] != "xmlns"
-            io<<ns[elem.namespace]
-            io<<":"
+            nameout=ns[elem.namespace]
+            nameout+=":"
+            nameout+=name
         end
-        io<<name
+        io<<self.color(nameout,:blue,color)
         nlines=[]
         elem.attributes.each do |k,v|
             if v.include?(" ")
-                nlines<< "#{Nom.istr}@#{k} #{v}"
+                nlines<< "#{Nom.istr}@"+self.color(k,:green,color)+" "+self.color(v,:red,color)
             else
-                io<<" #{k}=#{v}"
+                io<<" "+self.color(k+"",:green,color)+"="+self.color(v+"",:red,color)
             end
         end
         nline=nil
@@ -251,7 +261,7 @@ class XML
             io<<"\n"
         end
         elem.elements.each do |el|
-            render_nom(el,indent+1,ns,io)
+            render_nom(el,indent+1,ns,io,color)
         end
     end
 end

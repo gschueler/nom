@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
     "lib/nom.rb",
     "lib/nom/cli.rb"
   ]
+  s.requirements << 'colorize'
   s.executables << 'nom'
   s.require_paths = ["lib"]
 end
