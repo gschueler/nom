@@ -2,7 +2,7 @@
 " Language:     Nom - no markup xml
 " Version:      1.0
 " SeeAlso:      
-" Maintainer:   Greg Schueler, <greg@simplifyops.com>
+" Maintainer:   Greg Schueler, <greg.schueler@gmail.com>
 " Updated:      2013-08-16
 
 " TODO:
