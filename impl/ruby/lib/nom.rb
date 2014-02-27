@@ -193,11 +193,11 @@ class XML
 
     # Write Nom text to an IO stream
     # @param [IO] Output IO stream
-    def to_nom(io,color=false)
+    def to_nom(io,color=false,showns=false)
         ns = {}
         @doc.root.namespaces.each {|k,v| ns[v]=k }
         io<<"# nom\n"
-        render_nom(@doc.root,0,ns,io,color)
+        render_nom(@doc.root,0,ns,io,color,showns)
     end
 
     # Return whether the XML input was valid
@@ -218,23 +218,47 @@ class XML
     # @param [int] Indent level
     # @param [{String => String}] Namespace definitions
     # @param [IO] Output IO stream
-    def render_nom(elem,indent,ns,io,color=false)
+    def render_nom(elem,indent,ns,io,color=false,showns=false)
         pref=Nom.istr * indent
         io<<pref
         name=elem.name
         nameout=name
-        if elem.namespace != "" && ns[elem.namespace] != "xmlns"
-            nameout=ns[elem.namespace]
+        # add embedded namespaces
+        myns = ns
+        
+        elem.namespaces.each do |k,v|
+            myns[v]=k
+        end
+        if elem.namespace != "" && myns[elem.namespace] != "xmlns"
+            nameout=myns[elem.namespace]
+            if nameout.nil?
+                nameout=elem.namespace
+            end
             nameout+=":"
             nameout+=name
         end
         io<<self.color(nameout,:blue,color)
         nlines=[]
+        hasinlineattrs=false
         elem.attributes.each do |k,v|
-            if v.include?(" ")
-                nlines<< "#{Nom.istr}@"+self.color(k,:green,color)+" "+self.color(v,:red,color)
+            keycolor=:green
+            valcolor=:red
+            atcolor=:black
+            separated = v.include?(" ")
+            if k.include?("xmlns")
+                if !showns
+                    next
+                end
+                keycolor=:white
+                valcolor=:white
+                atcolor=:white
+                #separated=true
+            end
+            if separated
+                nlines<< "#{Nom.istr}"+self.color("@",atcolor,color)+self.color(k+"",keycolor,color)+" "+self.color(v+"",valcolor,color)
             else
-                io<<" "+self.color(k+"",:green,color)+"="+self.color(v+"",:red,color)
+                io<<" "+self.color(k+"",keycolor,color)+"="+self.color(v+"",valcolor,color)
+                hasinlineattrs=true
             end
         end
         nline=nil
@@ -243,7 +267,7 @@ class XML
                 line.chomp!
                 line.strip!
                 if line!=""
-                    if !nline && !line.include?("=")
+                    if !nline && !line.include?("=") && !hasinlineattrs
                         nline=line.chomp
                     else
                         nlines<<"#{Nom.istr}:#{line.chomp}"
@@ -261,7 +285,7 @@ class XML
             io<<"\n"
         end
         elem.elements.each do |el|
-            render_nom(el,indent+1,ns,io,color)
+            render_nom(el,indent+1,ns,io,color,showns)
         end
     end
 end
