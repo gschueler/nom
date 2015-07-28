@@ -13,5 +13,6 @@ Gem::Specification.new do |s|
   ]
   s.requirements << 'colorize'
   s.executables << 'nom'
+  s.executables << 'nox'
   s.require_paths = ["lib"]
 end
