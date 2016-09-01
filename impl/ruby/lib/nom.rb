@@ -178,11 +178,20 @@ end
 # Handles converting XML input to Nom
 class XML
     @doc
-
+    
     # Create a new object from XML input
     # @param [IO] Input XML IO stream
     def initialize(io)
         @doc=parse_xml(io)
+
+        @atcolor=ENV['NOM_COLOR_AT'] ? ENV['NOM_COLOR_AT'].to_sym : :black
+        @valcolor=ENV['NOM_COLOR_VAL'] ? ENV['NOM_COLOR_VAL'].to_sym : :red
+        @keycolor=ENV['NOM_COLOR_KEY'] ? ENV['NOM_COLOR_KEY'].to_sym : :green
+        @namecolor=ENV['NOM_COLOR_NAME'] ? ENV['NOM_COLOR_NAME'].to_sym : :blue
+
+        @atcolorns=ENV['NOM_COLOR_AT_NS'] ? ENV['NOM_COLOR_AT_NS'].to_sym : :white
+        @valcolorns=ENV['NOM_COLOR_VAL_NS'] ? ENV['NOM_COLOR_VAL_NS'].to_sym : :white
+        @keycolorns=ENV['NOM_COLOR_KEY_NS'] ? ENV['NOM_COLOR_KEY_NS'].to_sym : :white
     end
 
     # Parse the XML input
@@ -237,21 +246,25 @@ class XML
             nameout+=":"
             nameout+=name
         end
-        io<<self.color(nameout,:blue,color)
+        io<<self.color(nameout,@namecolor,color)
         nlines=[]
         hasinlineattrs=false
+        attrslen=0
         elem.attributes.each do |k,v|
-            keycolor=:green
-            valcolor=:red
-            atcolor=:black
-            separated = v.include?(" ")
-            if k.include?("xmlns")
+            attrslen+=k.length + 1 + v.length + 1
+        end
+        elem.attributes.each do |k,v|
+            keycolor=@keycolor
+            valcolor=@valcolor
+            atcolor=@atcolor
+            separated = v.include?(" ") || attrslen > 80
+            if k.include?("xmlns") 
                 if !showns
                     next
                 end
-                keycolor=:white
-                valcolor=:white
-                atcolor=:white
+                keycolor=@keycolorns
+                valcolor=@valcolorns
+                atcolor=@atcolorns
                 #separated=true
             end
             if separated
